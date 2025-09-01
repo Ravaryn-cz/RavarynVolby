@@ -1,0 +1,26 @@
+# Weekly Elections Plugin Configuration
+# Version: 1.0.0
+
+# Database settings
+database:
+  type: sqlite # Currently only sqlite is supported
+  file: elections.db
+
+# Election cycle settings
+election:
+  # Duration of registration phase in days
+  registration_duration: 7
+  # Duration of voting phase in days  
+  voting_duration: 7
+  # Duration of mandate in days
+  mandate_duration: 30
+
+# Region rotation order
+regions:
+  - vojtechov
+  - tresin
+  - pribyslav
+  - drahosov
+
+# Enable debug logging
+debug: false

@@ -1,0 +1,17 @@
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/npc/NPCManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/commands/ElectionCommands.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/elections/Candidate.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/database/DatabaseManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/WeeklyElectionsPlugin.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/elections/ElectionManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/reputation/ReputationManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/roles/RoleAssignmentManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/tasks/ElectionTask.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/elections/Election.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/regions/RegionManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/holograms/HologramManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/registration/CandidateRegistrationManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/elections/ElectionPhase.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/listeners/NPCListener.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/config/ConfigManager.java
+/mnt/c/Users/Dominik/eclipse-workspace/NewPlugin/src/main/java/cz/domca/elections/gui/GuiManager.java
