@@ -73,6 +73,9 @@ public class WeeklyElectionsPlugin extends JavaPlugin {
             // Initialize database
             databaseManager.initialize();
             
+            // Initialize election manager (after database is ready)
+            electionManager.initialize();
+            
             // Load regions
             regionManager.loadRegions();
             

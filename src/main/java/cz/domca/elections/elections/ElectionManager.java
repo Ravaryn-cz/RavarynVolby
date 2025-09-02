@@ -1,15 +1,20 @@
 package cz.domca.elections.elections;
 
-import cz.domca.elections.WeeklyElectionsPlugin;
-import org.bukkit.configuration.ConfigurationSection;
-
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
+
+import org.bukkit.configuration.ConfigurationSection;
+
+import cz.domca.elections.WeeklyElectionsPlugin;
 
 public class ElectionManager {
     
@@ -18,10 +23,18 @@ public class ElectionManager {
     
     public ElectionManager(WeeklyElectionsPlugin plugin) {
         this.plugin = plugin;
+    }
+    
+    public void initialize() {
         loadCurrentElection();
     }
     
     private void loadCurrentElection() {
+        if (plugin.getDatabaseManager() == null) {
+            plugin.getLogger().warning("Database manager not initialized yet, skipping election loading");
+            return;
+        }
+        
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             String query = "SELECT * FROM elections WHERE end_time IS NULL OR end_time > ? ORDER BY start_time DESC LIMIT 1";
             try (PreparedStatement stmt = conn.prepareStatement(query)) {
