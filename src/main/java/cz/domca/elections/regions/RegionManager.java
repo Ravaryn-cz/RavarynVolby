@@ -88,8 +88,11 @@ public class RegionManager {
     }
     
     public String getCurrentActiveRegion() {
-        // This will be implemented with the election manager
-        // For now, return the first region
+        // Get the region from current active election
+        if (plugin.getElectionManager() != null && plugin.getElectionManager().isElectionActive()) {
+            return plugin.getElectionManager().getCurrentElection().getRegionId();
+        }
+        // If no active election, return the first region as fallback
         return regionRotation.isEmpty() ? null : regionRotation.get(0);
     }
     

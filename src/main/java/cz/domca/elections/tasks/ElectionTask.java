@@ -69,8 +69,11 @@ public class ElectionTask extends BukkitRunnable {
                 
             case RESULTS:
                 // Results phase lasts for configured mandate duration
-                int mandateDays = plugin.getConfigManager().getMandateDuration();
-                if (daysSinceStart >= mandateDays) {
+                // The mandate duration starts after voting ends
+                int totalCycleTime = plugin.getConfigManager().getRegistrationDuration() 
+                    + plugin.getConfigManager().getVotingDuration() 
+                    + plugin.getConfigManager().getMandateDuration();
+                if (daysSinceStart >= totalCycleTime) {
                     // End current election and start new one in next region
                     String nextRegion = plugin.getRegionManager().getNextRegion(currentElection.getRegionId());
                     plugin.getElectionManager().progressElection(); // This will end current and start new

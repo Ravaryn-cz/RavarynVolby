@@ -244,8 +244,8 @@ public class ElectionCommands implements CommandExecutor, TabCompleter {
                 String currentRegion = plugin.getElectionManager().getCurrentElection().getRegionId();
                 String nextRegion = plugin.getRegionManager().getNextRegion(currentRegion);
                 
-                // End current election
-                plugin.getElectionManager().getCurrentElection().setPhase("FINISHED");
+                // End current election properly
+                plugin.getElectionManager().endCurrentElection();
                 
                 // Start new election in next region
                 plugin.getElectionManager().startNewElection(nextRegion);
