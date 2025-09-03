@@ -2,7 +2,7 @@
 
 # Main menu GUI
 main_menu:
-  title: "&a&lVolby - %region%"
+  title: "&aVolby - %region%"
   size: 27
   items:
     register:
@@ -46,11 +46,11 @@ main_menu:
 
 # Registration form GUI
 registration_form:
-  title: "&e&lRegistrace kandidáta"
+  title: "&eRegistrace"
   size: 45
   items:
     zalanik:
-      slot: 19
+      slot: 20
       material: IRON_BARS
       name: "&c&lZalařník"
       lore:
@@ -60,7 +60,7 @@ registration_form:
         - "&eKlikněte pro výběr"
     
     rychtář:
-      slot: 21
+      slot: 22
       material: GOLDEN_SWORD
       name: "&6&lRychtář"
       lore:
@@ -70,7 +70,7 @@ registration_form:
         - "&eKlikněte pro výběr"
     
     spravce_obchodu:
-      slot: 23
+      slot: 24
       material: EMERALD
       name: "&a&lSprávce obchodu"
       lore:
@@ -95,7 +95,7 @@ registration_form:
 
 # Voting GUI
 voting_gui:
-  title: "&a&lHlasování - %region%"
+  title: "&6Hlasování - %region%"
   size: 54
   items:
     candidate:
@@ -139,7 +139,7 @@ voting_gui:
 
 # Results GUI
 results_gui:
-  title: "&6&lVýsledky voleb - %region%"
+  title: "&6Výsledky - %region%"
   size: 54
   items:
     winner:

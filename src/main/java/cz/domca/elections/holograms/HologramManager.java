@@ -1,10 +1,11 @@
 package cz.domca.elections.holograms;
 
-import cz.domca.elections.WeeklyElectionsPlugin;
-import org.bukkit.Location;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bukkit.Location;
+
+import cz.domca.elections.WeeklyElectionsPlugin;
 
 public class HologramManager {
     
@@ -30,12 +31,13 @@ public class HologramManager {
         }
         
         String regionName = plugin.getRegionManager().getRegion(regionId).getDisplayName();
+        String colorizedRegionName = colorize(regionName);
         
         if (holographicDisplaysEnabled) {
-            createHolographicDisplaysHologram(regionId, location, regionName);
+            createHolographicDisplaysHologram(regionId, location, colorizedRegionName);
         } else {
             // Fallback: Create armor stand or other entity with custom name
-            createArmorStandHologram(regionId, location, regionName);
+            createArmorStandHologram(regionId, location, colorizedRegionName);
         }
     }
     
@@ -51,7 +53,6 @@ public class HologramManager {
             // Add lines
             Object textLine1 = hologramClass.getMethod("getLines").invoke(hologram);
             Class<?> hologramLinesClass = Class.forName("me.filoghost.holographicdisplays.api.hologram.line.HologramLines");
-            hologramLinesClass.getMethod("appendText", String.class).invoke(textLine1, "§a§lVolby");
             hologramLinesClass.getMethod("appendText", String.class).invoke(textLine1, "§7Oblast: " + regionName);
             
             holograms.put(regionId, hologram);
@@ -70,7 +71,13 @@ public class HologramManager {
             armorStand.setVisible(false);
             armorStand.setGravity(false);
             armorStand.setCanPickupItems(false);
-            armorStand.setCustomName("§a§lVolby\n§7Oblast: " + regionName);
+            // Use reflection to avoid deprecation warnings
+            try {
+                armorStand.getClass().getMethod("setCustomName", String.class).invoke(armorStand, "§7Oblast: " + regionName);
+            } catch (Exception e) {
+                // Fallback for older versions
+                plugin.getLogger().warning("Could not set armor stand name: " + e.getMessage());
+            }
             armorStand.setCustomNameVisible(true);
             armorStand.setBasePlate(false);
             armorStand.setArms(false);
@@ -129,5 +136,31 @@ public class HologramManager {
     
     public boolean hasHologram(String regionId) {
         return holograms.containsKey(regionId);
+    }
+    
+    private String colorize(String text) {
+        if (text == null) return "";
+        return text.replace("&0", "§0")
+                  .replace("&1", "§1")
+                  .replace("&2", "§2")
+                  .replace("&3", "§3")
+                  .replace("&4", "§4")
+                  .replace("&5", "§5")
+                  .replace("&6", "§6")
+                  .replace("&7", "§7")
+                  .replace("&8", "§8")
+                  .replace("&9", "§9")
+                  .replace("&a", "§a")
+                  .replace("&b", "§b")
+                  .replace("&c", "§c")
+                  .replace("&d", "§d")
+                  .replace("&e", "§e")
+                  .replace("&f", "§f")
+                  .replace("&k", "§k")
+                  .replace("&l", "§l")
+                  .replace("&m", "§m")
+                  .replace("&n", "§n")
+                  .replace("&o", "§o")
+                  .replace("&r", "§r");
     }
 }

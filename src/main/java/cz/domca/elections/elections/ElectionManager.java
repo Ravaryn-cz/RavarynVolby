@@ -259,7 +259,7 @@ public class ElectionManager {
         }
     }
     
-    private void endCurrentElection() {
+    public void endCurrentElection() {
         if (currentElection == null) {
             return;
         }
@@ -274,6 +274,8 @@ public class ElectionManager {
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to end election", e);
         }
+        
+        currentElection = null;
     }
     
     public Map<String, RoleData> getRoleData() {

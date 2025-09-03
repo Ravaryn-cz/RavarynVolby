@@ -24,10 +24,8 @@ public class ElectionTask extends BukkitRunnable {
         Election currentElection = plugin.getElectionManager().getCurrentElection();
         
         if (currentElection == null) {
-            // No active election, start one
-            String firstRegion = plugin.getRegionManager().getRegionRotation().get(0);
-            plugin.getElectionManager().startNewElection(firstRegion);
-            plugin.getLogger().info("Started new election cycle in region: " + firstRegion);
+            // No active election - don't start automatically
+            // Elections must be started manually with /volby start
             return;
         }
         

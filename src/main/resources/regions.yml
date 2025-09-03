@@ -3,21 +3,55 @@
 regions:
   vojtechov:
     name: "Vojtěchov"
-    display_name: "&e&lVojtěchov"
-    # Boundaries will be set via RavarynRegion integration
-    # NPC location will be set dynamically via command
+    display_name: "&eVojtěchov"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: -100
+      min_y: 0
+      min_z: -100
+      max_x: 100
+      max_y: 256
+      max_z: 100
     
   tresin:
     name: "Třešín"
-    display_name: "&e&lTřešín"
+    display_name: "&eTřešín"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: 200
+      min_y: 0
+      min_z: -100
+      max_x: 400
+      max_y: 256
+      max_z: 100
     
   pribyslav:
     name: "Přibyslav"
-    display_name: "&e&lPřibyslav"
+    display_name: "&ePřibyslav"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: -100
+      min_y: 0
+      min_z: 200
+      max_x: 100
+      max_y: 256
+      max_z: 400
     
   drahosov:
     name: "Drahošov"
-    display_name: "&e&lDrahošov"
+    display_name: "&eDrahošov"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: 200
+      min_y: 0
+      min_z: 200
+      max_x: 400
+      max_y: 256
+      max_z: 400
 
 # Role definitions
 roles:

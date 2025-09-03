@@ -1,13 +1,5 @@
 package cz.domca.elections.npc;
 
-import cz.domca.elections.WeeklyElectionsPlugin;
-import cz.domca.elections.holograms.HologramManager;
-import net.citizensnpcs.api.CitizensAPI;
-import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.api.npc.NPCRegistry;
-import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -15,6 +7,14 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
+
+import org.bukkit.Location;
+import org.bukkit.entity.EntityType;
+
+import cz.domca.elections.WeeklyElectionsPlugin;
+import net.citizensnpcs.api.CitizensAPI;
+import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.npc.NPCRegistry;
 
 public class NPCManager {
     
@@ -40,17 +40,27 @@ public class NPCManager {
                 ResultSet rs = stmt.executeQuery();
                 
                 while (rs.next()) {
-                    String regionId = rs.getString("region_id");
-                    int npcId = rs.getInt("npc_id");
-                    
-                    if (npcId > 0) {
-                        NPC npc = npcRegistry.getById(npcId);
-                        if (npc != null && npc.isSpawned()) {
-                            electionNPCs.put(regionId, npc);
+                    try {
+                        String regionId = rs.getString("region_id");
+                        int npcId = rs.getInt("npc_id");
+                        
+                        if (npcId > 0) {
+                            NPC npc = npcRegistry.getById(npcId);
+                            if (npc != null && npc.isSpawned()) {
+                                electionNPCs.put(regionId, npc);
+                                plugin.getLogger().info("Loaded existing NPC for region: " + regionId);
+                            } else {
+                                // NPC doesn't exist anymore, recreate it
+                                plugin.getLogger().warning("NPC " + npcId + " for region " + regionId + " not found, recreating...");
+                                recreateNPC(regionId, rs);
+                            }
                         } else {
-                            // NPC doesn't exist anymore, recreate it
+                            // No NPC ID stored, try to recreate
+                            plugin.getLogger().info("No NPC ID for region " + regionId + ", recreating...");
                             recreateNPC(regionId, rs);
                         }
+                    } catch (Exception ex) {
+                        plugin.getLogger().log(Level.WARNING, "Failed to load NPC for region " + rs.getString("region_id") + ", skipping...", ex);
                     }
                 }
             }
@@ -59,21 +69,29 @@ public class NPCManager {
         }
     }
     
-    private void recreateNPC(String regionId, ResultSet rs) throws SQLException {
-        String world = rs.getString("world");
-        double x = rs.getDouble("x");
-        double y = rs.getDouble("y");
-        double z = rs.getDouble("z");
-        float yaw = rs.getFloat("yaw");
-        float pitch = rs.getFloat("pitch");
-        
-        Location location = new Location(
-            plugin.getServer().getWorld(world),
-            x, y, z, yaw, pitch
-        );
-        
-        if (location.getWorld() != null) {
-            createNPC(regionId, location);
+    private void recreateNPC(String regionId, ResultSet rs) {
+        try {
+            String world = rs.getString("world");
+            double x = rs.getDouble("x");
+            double y = rs.getDouble("y");
+            double z = rs.getDouble("z");
+            float yaw = rs.getFloat("yaw");
+            float pitch = rs.getFloat("pitch");
+            
+            Location location = new Location(
+                plugin.getServer().getWorld(world),
+                x, y, z, yaw, pitch
+            );
+            
+            if (location.getWorld() != null) {
+                createNPC(regionId, location);
+            } else {
+                plugin.getLogger().warning("Cannot recreate NPC for region " + regionId + ": World " + world + " not loaded");
+            }
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to read NPC data for region " + regionId, e);
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Failed to recreate NPC for region " + regionId, e);
         }
     }
     
@@ -82,27 +100,54 @@ public class NPCManager {
             return false; // NPC already exists
         }
         
-        // Create NPC
-        NPC npc = npcRegistry.createNPC(EntityType.PLAYER, "§a§lVolby");
-        npc.spawn(location);
+        // Validate location
+        if (location == null || location.getWorld() == null) {
+            plugin.getLogger().warning("Cannot create NPC for region " + regionId + ": Invalid location or world not loaded");
+            return false;
+        }
         
-        // Configure NPC
-        npc.data().set(NPC.Metadata.NAMEPLATE_VISIBLE, true);
-        npc.data().set(NPC.Metadata.COLLIDABLE, false);
-        npc.getEntity().setGravity(false);
-        
-        // Set metadata for identification
-        npc.data().set("region_id", regionId);
-        npc.data().set("role", "election_commissioner");
-        
-        // Store in database
-        saveNPCLocation(regionId, location, npc.getId());
-        
-        // Store in memory
-        electionNPCs.put(regionId, npc);
-        
-        plugin.getLogger().info("Created election NPC for region: " + regionId);
-        return true;
+        try {
+            // Create NPC
+            NPC npc = npcRegistry.createNPC(EntityType.PLAYER, "Volební komisař");
+            npc.spawn(location);
+            
+            // Configure NPC
+            npc.data().set(NPC.Metadata.NAMEPLATE_VISIBLE, true);
+            npc.data().set(NPC.Metadata.COLLIDABLE, false);
+            
+            // Configure entity properties if available
+            if (npc.getEntity() != null) {
+                npc.getEntity().setGravity(false);
+            } else {
+                // Schedule entity configuration for later when it's available
+                plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
+                    if (npc.getEntity() != null) {
+                        npc.getEntity().setGravity(false);
+                    }
+                }, 1L); // Wait 1 tick
+            }
+            
+            // Set metadata for identification
+            npc.data().set("region_id", regionId);
+            npc.data().set("role", "election_commissioner");
+            
+            // Store in database
+            saveNPCLocation(regionId, location, npc.getId());
+            
+            // Store in memory
+            electionNPCs.put(regionId, npc);
+            
+            // Create hologram
+            plugin.getHologramManager().createElectionHologram(regionId, location);
+            
+            plugin.getLogger().info("Created election NPC for region: " + regionId);
+            return true;
+            
+        } catch (Exception e) {
+            plugin.getLogger().severe("Failed to create NPC for region " + regionId + ": " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
     }
     
     private void saveNPCLocation(String regionId, Location location, int npcId) {

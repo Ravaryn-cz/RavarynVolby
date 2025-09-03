@@ -1,20 +1,22 @@
 package cz.domca.elections.gui;
 
-import cz.domca.elections.WeeklyElectionsPlugin;
-import cz.domca.elections.elections.Candidate;
-import cz.domca.elections.elections.ElectionManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import cz.domca.elections.WeeklyElectionsPlugin;
+import cz.domca.elections.elections.Candidate;
+import cz.domca.elections.elections.ElectionManager;
 
 public class GuiManager {
     
@@ -29,10 +31,10 @@ public class GuiManager {
         if (mainMenuConfig == null) return;
         
         String title = colorize(mainMenuConfig.getString("title", "Volby"))
-            .replace("%region%", plugin.getRegionManager().getRegion(regionId).getDisplayName());
+            .replace("%region%", colorize(plugin.getRegionManager().getRegion(regionId).getDisplayName()));
         int size = mainMenuConfig.getInt("size", 27);
         
-        Inventory inventory = Bukkit.createInventory(null, size, title);
+        Inventory inventory = Bukkit.createInventory((InventoryHolder) null, size, title);
         
         // Add items
         ConfigurationSection itemsConfig = mainMenuConfig.getConfigurationSection("items");
@@ -57,7 +59,7 @@ public class GuiManager {
         String title = colorize(regFormConfig.getString("title", "Registrace"));
         int size = regFormConfig.getInt("size", 45);
         
-        Inventory inventory = Bukkit.createInventory(null, size, title);
+        Inventory inventory = Bukkit.createInventory((InventoryHolder) null, size, title);
         
         // Add role selection items
         ConfigurationSection itemsConfig = regFormConfig.getConfigurationSection("items");
@@ -97,11 +99,12 @@ public class GuiManager {
         if (votingConfig == null) return;
         
         String title = colorize(votingConfig.getString("title", "Hlasování"))
-            .replace("%region%", plugin.getRegionManager().getRegion(regionId).getDisplayName());
+            .replace("%region%", colorize(plugin.getRegionManager().getRegion(regionId).getDisplayName()));
         int size = votingConfig.getInt("size", 54);
         
-        Inventory inventory = Bukkit.createInventory(null, size, title);
+        Inventory inventory = Bukkit.createInventory((InventoryHolder) null, size, title);
         
+        // Get candidates for current election (should match region if election is active)
         List<Candidate> candidates = plugin.getElectionManager().getCandidates();
         boolean hasVoted = plugin.getElectionManager().hasVoted(player.getUniqueId().toString());
         
@@ -152,10 +155,10 @@ public class GuiManager {
         if (resultsConfig == null) return;
         
         String title = colorize(resultsConfig.getString("title", "Výsledky"))
-            .replace("%region%", plugin.getRegionManager().getRegion(regionId).getDisplayName());
+            .replace("%region%", colorize(plugin.getRegionManager().getRegion(regionId).getDisplayName()));
         int size = resultsConfig.getInt("size", 54);
         
-        Inventory inventory = Bukkit.createInventory(null, size, title);
+        Inventory inventory = Bukkit.createInventory((InventoryHolder) null, size, title);
         
         List<Candidate> candidates = plugin.getElectionManager().getCandidates();
         
@@ -277,6 +280,29 @@ public class GuiManager {
     }
     
     private String colorize(String text) {
-        return text.replace("&", "§");
+        // Simple color code replacement that definitely works
+        if (text == null) return "";
+        return text.replace("&0", "§0")
+                  .replace("&1", "§1")
+                  .replace("&2", "§2")
+                  .replace("&3", "§3")
+                  .replace("&4", "§4")
+                  .replace("&5", "§5")
+                  .replace("&6", "§6")
+                  .replace("&7", "§7")
+                  .replace("&8", "§8")
+                  .replace("&9", "§9")
+                  .replace("&a", "§a")
+                  .replace("&b", "§b")
+                  .replace("&c", "§c")
+                  .replace("&d", "§d")
+                  .replace("&e", "§e")
+                  .replace("&f", "§f")
+                  .replace("&k", "§k")
+                  .replace("&l", "§l")
+                  .replace("&m", "§m")
+                  .replace("&n", "§n")
+                  .replace("&o", "§o")
+                  .replace("&r", "§r");
     }
 }

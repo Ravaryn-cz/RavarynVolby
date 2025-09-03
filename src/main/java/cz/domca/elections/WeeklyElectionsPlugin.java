@@ -86,7 +86,9 @@ public class WeeklyElectionsPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new NPCListener(this), this);
             
             // Register commands
-            getCommand("volby").setExecutor(new ElectionCommands(this));
+            ElectionCommands commandHandler = new ElectionCommands(this);
+            getCommand("volby").setExecutor(commandHandler);
+            getCommand("volby").setTabCompleter(commandHandler);
             
             // Start election task
             new ElectionTask(this).runTaskTimer(this, 20L, 1200L); // Run every minute

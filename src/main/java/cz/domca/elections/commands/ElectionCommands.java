@@ -1,12 +1,21 @@
 package cz.domca.elections.commands;
 
-import cz.domca.elections.WeeklyElectionsPlugin;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-public class ElectionCommands implements CommandExecutor {
+import cz.domca.elections.WeeklyElectionsPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+
+public class ElectionCommands implements CommandExecutor, TabCompleter {
     
     private final WeeklyElectionsPlugin plugin;
     
@@ -36,11 +45,20 @@ public class ElectionCommands implements CommandExecutor {
         String subCommand = args[0].toLowerCase();
         
         switch (subCommand) {
+            case "start":
+                return handleStartElection(sender);
+                
+            case "progress":
+                return handleProgressPhase(sender);
+                
             case "reload":
                 return handleReload(sender);
                 
             case "rotate":
                 return handleRotate(sender);
+                
+            case "cycle":
+                return handleCycleRotation(sender);
                 
             case "reputation":
                 return handleReputation(sender, args);
@@ -48,13 +66,104 @@ public class ElectionCommands implements CommandExecutor {
             case "fixnpcs":
                 return handleFixNPCs(sender);
                 
+            case "region":
+                return handleRegionCommands(sender, args);
+                
+            case "whereami":
+                return handleWhereAmI(sender);
+                
             default:
                 // Check if it's a region ID for creating NPC
                 if (plugin.getRegionManager().getRegion(args[0]) != null) {
                     return handleCreateNPC(sender, args[0]);
                 } else {
-                    sender.sendMessage(colorize("&cNeznámý příkaz! Použijte: /volby [reload|rotate|reputation|fixnpcs|<region>]"));
+                    sender.sendMessage(colorize("&cNeznámý příkaz! Použijte: /volby [start|progress|reload|rotate|cycle|reputation|fixnpcs|region|whereami|<region>]"));
+                    return true;
                 }
+        }
+    }
+    
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+        
+        if (args.length == 1) {
+            List<String> subCommands = Arrays.asList("start", "progress", "reload", "rotate", "cycle", "reputation", "fixnpcs", "region", "whereami");
+            
+            // Add admin commands only if player has permission
+            if (sender.hasPermission("elections.admin")) {
+                completions.addAll(subCommands);
+                // Add region IDs for NPC creation
+                completions.addAll(plugin.getRegionManager().getRegionRotation());
+            }
+            
+            // Filter by what the player has typed so far
+            return completions.stream()
+                    .filter(comp -> comp.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .collect(Collectors.toList());
+                    
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("reputation")) {
+            // Tab complete player names for reputation command
+            return plugin.getServer().getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .collect(Collectors.toList());
+        } else if (args.length == 2 && args[0].equalsIgnoreCase("region")) {
+            // Tab complete region subcommands
+            return Arrays.asList("info", "check").stream()
+                    .filter(cmd -> cmd.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .collect(Collectors.toList());
+        } else if (args.length == 3 && args[0].equalsIgnoreCase("region") && args[1].equalsIgnoreCase("info")) {
+            // Tab complete region IDs for info command
+            return plugin.getRegionManager().getRegionRotation().stream()
+                    .filter(region -> region.toLowerCase().startsWith(args[2].toLowerCase()))
+                    .collect(Collectors.toList());
+        }
+        
+        return completions;
+    }
+    
+    private boolean handleStartElection(CommandSender sender) {
+        if (!sender.hasPermission("elections.admin")) {
+            sender.sendMessage(colorize("&cNemáte oprávnění k tomuto příkazu!"));
+            return true;
+        }
+        
+        if (plugin.getElectionManager().isElectionActive()) {
+            sender.sendMessage(colorize("&cVolby již jsou aktivní!"));
+            return true;
+        }
+        
+        try {
+            String firstRegion = plugin.getRegionManager().getRegionRotation().get(0);
+            plugin.getElectionManager().startNewElection(firstRegion);
+            sender.sendMessage(colorize("&aVolby byly spuštěny v regionu: " + 
+                plugin.getRegionManager().getRegion(firstRegion).getDisplayName()));
+        } catch (Exception e) {
+            sender.sendMessage(colorize("&cChyba při spuštění voleb: " + e.getMessage()));
+            plugin.getLogger().severe("Failed to start election: " + e.getMessage());
+        }
+        
+        return true;
+    }
+    
+    private boolean handleProgressPhase(CommandSender sender) {
+        if (!sender.hasPermission("elections.admin")) {
+            sender.sendMessage(colorize("&cNemáte oprávnění k tomuto příkazu!"));
+            return true;
+        }
+        
+        if (!plugin.getElectionManager().isElectionActive()) {
+            sender.sendMessage(colorize("&cNejsou aktivní žádné volby!"));
+            return true;
+        }
+        
+        try {
+            plugin.getElectionManager().progressElection();
+            sender.sendMessage(colorize("&aFáze voleb byla posunuta vpřed!"));
+        } catch (Exception e) {
+            sender.sendMessage(colorize("&cChyba při posunu fáze: " + e.getMessage()));
+            plugin.getLogger().severe("Failed to progress election phase: " + e.getMessage());
         }
         
         return true;
@@ -85,9 +194,41 @@ public class ElectionCommands implements CommandExecutor {
         
         try {
             plugin.getElectionManager().progressElection();
-            sender.sendMessage(colorize("&aVolby byly ručně ukončeny a cyklus přesunut do dalšího regionu!"));
+            sender.sendMessage(colorize("&aVolby byly manuálně posunuty do další fáze!"));
         } catch (Exception e) {
-            sender.sendMessage(colorize("&cChyba při rotaci voleb: " + e.getMessage()));
+            sender.sendMessage(colorize("&cChyba při posunu voleb: " + e.getMessage()));
+            plugin.getLogger().severe("Failed to rotate election: " + e.getMessage());
+        }
+        
+        return true;
+    }
+    
+    private boolean handleCycleRotation(CommandSender sender) {
+        if (!sender.hasPermission("elections.admin")) {
+            sender.sendMessage(colorize("&cNemáte oprávnění k tomuto příkazu!"));
+            return true;
+        }
+        
+        try {
+            // End current election and start new one in next region
+            if (plugin.getElectionManager().isElectionActive()) {
+                String currentRegion = plugin.getElectionManager().getCurrentElection().getRegionId();
+                String nextRegion = plugin.getRegionManager().getNextRegion(currentRegion);
+                
+                // End current election
+                plugin.getElectionManager().getCurrentElection().setPhase("FINISHED");
+                
+                // Start new election in next region
+                plugin.getElectionManager().startNewElection(nextRegion);
+                
+                sender.sendMessage(colorize("&aVolby byly ukončeny a cyklus byl přesunut do regionu: " + 
+                    plugin.getRegionManager().getRegion(nextRegion).getDisplayName()));
+            } else {
+                sender.sendMessage(colorize("&cŽádné aktivní volby k ukončení!"));
+            }
+        } catch (Exception e) {
+            sender.sendMessage(colorize("&cChyba při rotaci cyklu: " + e.getMessage()));
+            plugin.getLogger().severe("Failed to rotate cycle: " + e.getMessage());
         }
         
         return true;
@@ -181,7 +322,121 @@ public class ElectionCommands implements CommandExecutor {
         return true;
     }
     
+    private boolean handleRegionCommands(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("elections.admin")) {
+            sender.sendMessage(colorize("&cNemáte oprávnění k tomuto příkazu!"));
+            return true;
+        }
+        
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tento příkaz může použít pouze hráč!");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        
+        if (args.length < 2) {
+            sender.sendMessage(colorize("&cPoužití: /volby region <info|check> [region]"));
+            return true;
+        }
+        
+        String subAction = args[1].toLowerCase();
+        
+        switch (subAction) {
+            case "info":
+                if (args.length < 3) {
+                    sender.sendMessage(colorize("&cPoužití: /volby region info <region>"));
+                    return true;
+                }
+                return showRegionInfo(player, args[2]);
+                
+            case "check":
+                return checkPlayerRegion(player);
+                
+            default:
+                sender.sendMessage(colorize("&cNeznámá akce! Použijte: info, check"));
+                return true;
+        }
+    }
+    
+    private boolean handleWhereAmI(CommandSender sender) {
+        if (!(sender instanceof Player)) {
+            sender.sendMessage("Tento příkaz může použít pouze hráč!");
+            return true;
+        }
+        
+        Player player = (Player) sender;
+        String region = plugin.getRegionManager().getRegionAt(player.getLocation());
+        
+        if (region != null) {
+            String regionName = plugin.getRegionManager().getRegion(region).getDisplayName();
+            player.sendMessage(colorize("&aJste v regionu: " + regionName + " (" + region + ")"));
+        } else {
+            player.sendMessage(colorize("&7Nejste v žádném definovaném regionu."));
+        }
+        
+        return true;
+    }
+    
+    private boolean showRegionInfo(Player player, String regionId) {
+        var region = plugin.getRegionManager().getRegion(regionId);
+        if (region == null) {
+            player.sendMessage(colorize("&cRegion '" + regionId + "' neexistuje!"));
+            return true;
+        }
+        
+        player.sendMessage(colorize("&6=== Informace o regionu ==="));
+        player.sendMessage(colorize("&eID: &f" + region.getId()));
+        player.sendMessage(colorize("&eNázev: &f" + region.getName()));
+        player.sendMessage(colorize("&eZobrazovaný název: " + region.getDisplayName()));
+        
+        if (region.hasBoundary()) {
+            var boundary = region.getBoundary();
+            player.sendMessage(colorize("&eGranice:"));
+            player.sendMessage(colorize("&7  Svět: &f" + boundary.getWorldName()));
+            player.sendMessage(colorize("&7  X: &f" + boundary.getMinX() + " až " + boundary.getMaxX()));
+            player.sendMessage(colorize("&7  Y: &f" + boundary.getMinY() + " až " + boundary.getMaxY()));
+            player.sendMessage(colorize("&7  Z: &f" + boundary.getMinZ() + " až " + boundary.getMaxZ()));
+        } else {
+            player.sendMessage(colorize("&cŽádné hranice nejsou definovány!"));
+        }
+        
+        return true;
+    }
+    
+    private boolean checkPlayerRegion(Player player) {
+        String region = plugin.getRegionManager().getRegionAt(player.getLocation());
+        
+        if (region != null) {
+            var regionObj = plugin.getRegionManager().getRegion(region);
+            player.sendMessage(colorize("&aJste v regionu: " + regionObj.getDisplayName() + " (" + region + ")"));
+            
+            // Check if there's an active election for this region
+            if (plugin.getElectionManager().isElectionActive()) {
+                String activeRegion = plugin.getElectionManager().getCurrentElection().getRegionId();
+                if (activeRegion.equals(region)) {
+                    player.sendMessage(colorize("&6V tomto regionu jsou aktivní volby!"));
+                } else {
+                    player.sendMessage(colorize("&7Volby jsou aktivní v jiném regionu."));
+                }
+            } else {
+                player.sendMessage(colorize("&7Momentálně nejsou aktivní žádné volby."));
+            }
+        } else {
+            player.sendMessage(colorize("&7Nejste v žádném definovaném regionu."));
+            player.sendMessage(colorize("&7Pozice: " + 
+                String.format("%.1f, %.1f, %.1f", 
+                    player.getLocation().getX(),
+                    player.getLocation().getY(),
+                    player.getLocation().getZ())));
+        }
+        
+        return true;
+    }
+    
     private String colorize(String text) {
-        return text.replace("&", "§");
+        // Use Adventure API for modern color handling
+        Component component = LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        return LegacyComponentSerializer.legacySection().serialize(component);
     }
 }
