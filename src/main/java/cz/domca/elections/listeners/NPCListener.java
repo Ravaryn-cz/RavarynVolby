@@ -1,5 +1,7 @@
 package cz.domca.elections.listeners;
 
+import java.util.List;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -213,16 +215,24 @@ public class NPCListener implements Listener {
                     return;
                 }
                 
-                // For demo purposes - in real implementation you'd:
-                // 1. Get the candidate ID from the item
-                // 2. Cast the vote in database
-                // 3. Update the GUI to show voted state
-                boolean voteSuccess = castVoteForCandidate(player, candidateName);
-                if (voteSuccess) {
-                    player.sendMessage(colorize("&aVáš hlas pro " + candidateName + " byl zaznamenán!"));
-                    player.closeInventory();
+                // Get candidate ID by finding the candidate in the list
+                int candidateId = findCandidateIdByName(candidateName);
+                if (candidateId > 0) {
+                    boolean voteSuccess = plugin.getElectionManager().castVote(player.getUniqueId().toString(), candidateId);
+                    if (voteSuccess) {
+                        player.sendMessage(colorize("&aVáš hlas pro " + candidateName + " byl zaznamenán!"));
+                        player.closeInventory();
+                        
+                        // Reopen voting GUI to show updated vote status
+                        String regionId = extractRegionFromCurrentElection();
+                        if (regionId != null) {
+                            plugin.getGuiManager().openVotingGui(player, regionId, 0);
+                        }
+                    } else {
+                        player.sendMessage(colorize("&cChyba při hlasování!"));
+                    }
                 } else {
-                    player.sendMessage(colorize("&cChyba při hlasování!"));
+                    player.sendMessage(colorize("&cKandidát nebyl nalezen!"));
                 }
             }
         }
@@ -235,15 +245,14 @@ public class NPCListener implements Listener {
         }
     }
     
-    private boolean castVoteForCandidate(Player player, String candidateName) {
-        // This is a simplified implementation
-        // In reality, you'd need to:
-        // 1. Find the candidate by name in current election
-        // 2. Call plugin.getElectionManager().vote(player.getUniqueId().toString(), candidateId)
-        // 3. Return the success status
-        
-        // For demo purposes, always return true
-        return true;
+    private int findCandidateIdByName(String candidateName) {
+        List<cz.domca.elections.elections.Candidate> candidates = plugin.getElectionManager().getCandidates();
+        for (cz.domca.elections.elections.Candidate candidate : candidates) {
+            if (candidate.getPlayerName().equals(candidateName)) {
+                return candidate.getId();
+            }
+        }
+        return -1; // Candidate not found
     }
     
     private String extractRegionFromTitle(String title) {
@@ -262,8 +271,20 @@ public class NPCListener implements Listener {
     }
     
     private String extractPlayerNameFromDisplayName(String displayName) {
-        // Extract player name from display name like "§ePlayerName"
-        return displayName.replaceAll("§[0-9a-fk-or]", "").trim();
+        // Extract player name from display name like "§eKandidát PlayerName" or "§eKandidát PlayerName §a(Hlasovali jste)"
+        String cleanName = displayName.replaceAll("§[0-9a-fk-or]", "").trim();
+        
+        // Remove "Kandidát " prefix
+        if (cleanName.startsWith("Kandidát ")) {
+            cleanName = cleanName.substring("Kandidát ".length());
+        }
+        
+        // Remove " (Hlasovali jste)" suffix if present
+        if (cleanName.contains(" (Hlasovali jste)")) {
+            cleanName = cleanName.substring(0, cleanName.indexOf(" (Hlasovali jste)"));
+        }
+        
+        return cleanName.trim();
     }
     
     private boolean checkElectionRequirements(Player player) {

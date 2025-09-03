@@ -229,12 +229,25 @@ public class ElectionManager {
         ElectionPhase nextPhase = currentElection.getPhase().getNext();
         if (nextPhase == null) {
             // Election ended, start new one in next region
+            String currentRegion = currentElection.getRegionId();
             endCurrentElection();
-            String nextRegion = plugin.getRegionManager().getNextRegion(currentElection.getRegionId());
-            startNewElection(nextRegion);
+            
+            String nextRegion = plugin.getRegionManager().getNextRegion(currentRegion);
+            if (nextRegion != null && !nextRegion.equals(currentRegion)) {
+                try {
+                    startNewElection(nextRegion);
+                    plugin.getLogger().info("Started new election in region: " + nextRegion);
+                } catch (Exception e) {
+                    plugin.getLogger().severe("Failed to start new election in region " + nextRegion + ": " + e.getMessage());
+                    e.printStackTrace();
+                }
+            } else {
+                plugin.getLogger().warning("No next region available or same region returned: " + nextRegion);
+            }
         } else {
             // Progress to next phase
             updateElectionPhase(nextPhase);
+            plugin.getLogger().info("Progressed election to phase: " + nextPhase.getDisplayName());
         }
     }
     

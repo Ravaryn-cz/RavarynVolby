@@ -224,7 +224,8 @@ public class GuiManager {
                     lore.add(colorize(line
                         .replace("%player%", candidate.getPlayerName())
                         .replace("%role%", candidate.getRole())
-                        .replace("%slogan%", candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")));
+                        .replace("%slogan%", candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")
+                        .replace("%votes%", String.valueOf(candidate.getVotes()))));
                 }
                 meta.setLore(lore);
             }
@@ -236,20 +237,18 @@ public class GuiManager {
     }
     
     private ItemStack createResultItem(Candidate candidate, boolean isWinner, ConfigurationSection config) {
-        ItemStack item;
-        ItemMeta meta;
+        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
         
-        ConfigurationSection itemConfig = isWinner ? 
-            config.getConfigurationSection("winner") : 
-            config.getConfigurationSection("candidate_result");
-        
-        if (itemConfig != null) {
-            String materialName = itemConfig.getString("material", "PLAYER_HEAD");
-            Material material = Material.valueOf(materialName);
-            item = new ItemStack(material);
-            meta = item.getItemMeta();
+        if (meta != null) {
+            // Set player head
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(candidate.getPlayerName()));
             
-            if (meta != null) {
+            ConfigurationSection itemConfig = isWinner ? 
+                config.getConfigurationSection("winner") : 
+                config.getConfigurationSection("candidate_result");
+            
+            if (itemConfig != null) {
                 String name = itemConfig.getString("name", "%player%")
                     .replace("%player%", candidate.getPlayerName());
                 meta.setDisplayName(colorize(name));
@@ -264,16 +263,14 @@ public class GuiManager {
                     lore.add(colorize(line
                         .replace("%player%", candidate.getPlayerName())
                         .replace("%role%", candidate.getRole())
+                        .replace("%slogan%", candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")
                         .replace("%votes%", String.valueOf(candidate.getVotes()))
                         .replace("%percentage%", String.format("%.1f", percentage))));
                 }
                 meta.setLore(lore);
-                
-                item.setItemMeta(meta);
             }
-        } else {
-            item = new ItemStack(Material.PLAYER_HEAD);
-            meta = item.getItemMeta();
+            
+            item.setItemMeta(meta);
         }
         
         return item;

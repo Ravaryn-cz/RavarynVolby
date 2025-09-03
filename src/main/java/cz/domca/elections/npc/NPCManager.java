@@ -107,8 +107,8 @@ public class NPCManager {
         }
         
         try {
-            // Create NPC
-            NPC npc = npcRegistry.createNPC(EntityType.PLAYER, "Volební komisař");
+            // Create NPC as VILLAGER to avoid zombie sounds
+            NPC npc = npcRegistry.createNPC(EntityType.VILLAGER, "Volební komisař");
             npc.spawn(location);
             
             // Configure NPC
@@ -118,11 +118,13 @@ public class NPCManager {
             // Configure entity properties if available
             if (npc.getEntity() != null) {
                 npc.getEntity().setGravity(false);
+                npc.getEntity().setSilent(true); // Make NPC silent to avoid unwanted sounds
             } else {
                 // Schedule entity configuration for later when it's available
                 plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                     if (npc.getEntity() != null) {
                         npc.getEntity().setGravity(false);
+                        npc.getEntity().setSilent(true); // Make NPC silent
                     }
                 }, 1L); // Wait 1 tick
             }

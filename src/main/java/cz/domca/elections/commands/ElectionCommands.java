@@ -45,6 +45,9 @@ public class ElectionCommands implements CommandExecutor, TabCompleter {
         String subCommand = args[0].toLowerCase();
         
         switch (subCommand) {
+            case "help":
+                return handleHelp(sender);
+                
             case "start":
                 return handleStartElection(sender);
                 
@@ -77,7 +80,7 @@ public class ElectionCommands implements CommandExecutor, TabCompleter {
                 if (plugin.getRegionManager().getRegion(args[0]) != null) {
                     return handleCreateNPC(sender, args[0]);
                 } else {
-                    sender.sendMessage(colorize("&cNeznámý příkaz! Použijte: /volby [start|progress|reload|rotate|cycle|reputation|fixnpcs|region|whereami|<region>]"));
+                    sender.sendMessage(colorize("&cNeznámý příkaz! Použijte: /volby help pro nápovědu"));
                     return true;
                 }
         }
@@ -88,7 +91,11 @@ public class ElectionCommands implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("start", "progress", "reload", "rotate", "cycle", "reputation", "fixnpcs", "region", "whereami");
+            List<String> subCommands = Arrays.asList("help", "start", "progress", "reload", "rotate", "cycle", "reputation", "fixnpcs", "region", "whereami");
+            
+            // Add basic commands for all users
+            completions.add("help");
+            completions.add("whereami");
             
             // Add admin commands only if player has permission
             if (sender.hasPermission("elections.admin")) {
@@ -123,6 +130,28 @@ public class ElectionCommands implements CommandExecutor, TabCompleter {
         return completions;
     }
     
+    private boolean handleHelp(CommandSender sender) {
+        sender.sendMessage(colorize("&6=== Nápověda pro volby ==="));
+        sender.sendMessage(colorize("&e/volby &7- Otevřít hlavní menu voleb"));
+        sender.sendMessage(colorize("&e/volby help &7- Zobrazit tuto nápovědu"));
+        sender.sendMessage(colorize("&e/volby whereami &7- Zobrazit aktuální region"));
+        
+        if (sender.hasPermission("elections.admin")) {
+            sender.sendMessage(colorize("&6=== Admin příkazy ==="));
+            sender.sendMessage(colorize("&e/volby start &7- Spustit nové volby"));
+            sender.sendMessage(colorize("&e/volby progress &7- Posunout fázi voleb"));
+            sender.sendMessage(colorize("&e/volby reload &7- Znovu načíst konfiguraci"));
+            sender.sendMessage(colorize("&e/volby rotate &7- Manuálně posunout volby"));
+            sender.sendMessage(colorize("&e/volby cycle &7- Ukončit a přejít na další region"));
+            sender.sendMessage(colorize("&e/volby reputation <hráč> <±množství> &7- Upravit reputaci"));
+            sender.sendMessage(colorize("&e/volby fixnpcs &7- Opravit chybějící NPC"));
+            sender.sendMessage(colorize("&e/volby region <info|check> &7- Informace o regionech"));
+            sender.sendMessage(colorize("&e/volby <region> &7- Vytvořit NPC v regionu"));
+        }
+        
+        return true;
+    }
+
     private boolean handleStartElection(CommandSender sender) {
         if (!sender.hasPermission("elections.admin")) {
             sender.sendMessage(colorize("&cNemáte oprávnění k tomuto příkazu!"));
