@@ -118,6 +118,16 @@ voting_gui:
         - ""
         - "&aJiž jste hlasovali"
     
+    voting_disabled:
+      material: PLAYER_HEAD
+      name: "&eKandidát %player% &8(Hlasování není aktivní)"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
+        - ""
+        - "&8Hlasování momentálně není aktivní"
+    
     previous_page:
       slot: 45
       material: ARROW

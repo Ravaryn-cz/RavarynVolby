@@ -107,6 +107,7 @@ public class GuiManager {
         // Get candidates for current election (should match region if election is active)
         List<Candidate> candidates = plugin.getElectionManager().getCandidates();
         boolean hasVoted = plugin.getElectionManager().hasVoted(player.getUniqueId().toString());
+        boolean canVote = plugin.getElectionManager().canVote();
         
         // Calculate pagination
         int itemsPerPage = 45; // 9x5 grid
@@ -117,7 +118,7 @@ public class GuiManager {
         int slot = 0;
         for (int i = startIndex; i < endIndex; i++) {
             Candidate candidate = candidates.get(i);
-            ItemStack item = createCandidateItem(candidate, hasVoted, votingConfig);
+            ItemStack item = createCandidateItem(candidate, hasVoted, canVote, votingConfig);
             inventory.setItem(slot++, item);
         }
         
@@ -201,7 +202,7 @@ public class GuiManager {
         return item;
     }
     
-    private ItemStack createCandidateItem(Candidate candidate, boolean hasVoted, ConfigurationSection config) {
+    private ItemStack createCandidateItem(Candidate candidate, boolean hasVoted, boolean canVote, ConfigurationSection config) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         
@@ -209,14 +210,29 @@ public class GuiManager {
             // Set player head
             meta.setOwningPlayer(Bukkit.getOfflinePlayer(candidate.getPlayerName()));
             
-            // Set name and lore
-            ConfigurationSection itemConfig = hasVoted ? 
-                config.getConfigurationSection("voted_candidate") : 
-                config.getConfigurationSection("candidate");
+            // Set name and lore  
+            ConfigurationSection itemConfig;
+            if (hasVoted) {
+                itemConfig = config.getConfigurationSection("voted_candidate");
+            } else if (!canVote) {
+                // Try to get a "voting_disabled" config, otherwise fall back to candidate
+                itemConfig = config.getConfigurationSection("voting_disabled");
+                if (itemConfig == null) {
+                    itemConfig = config.getConfigurationSection("candidate");
+                }
+            } else {
+                itemConfig = config.getConfigurationSection("candidate");
+            }
             
             if (itemConfig != null) {
                 String name = itemConfig.getString("name", "%player%")
                     .replace("%player%", candidate.getPlayerName());
+                
+                // If voting is disabled but we don't have a special template, modify the name
+                if (!canVote && !hasVoted && itemConfig == config.getConfigurationSection("candidate")) {
+                    name = name + " &8(Hlasování není aktivní)";
+                }
+                
                 meta.setDisplayName(colorize(name));
                 
                 List<String> lore = new ArrayList<>();

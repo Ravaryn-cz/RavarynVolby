@@ -205,10 +205,11 @@ public class NPCListener implements Listener {
         }
         
         // Check if it's a candidate item (player head) and not already voted
-        if (item.getType().name().equals("PLAYER_HEAD") && !displayName.contains("Hlasovali jste")) {
+        if (item.getType() == Material.PLAYER_HEAD && !displayName.contains("Hlasovali jste") && !displayName.contains("není aktivní")) {
             // Extract candidate name and cast vote
             String candidateName = extractPlayerNameFromDisplayName(displayName);
-            if (candidateName != null) {
+            
+            if (candidateName != null && !candidateName.isEmpty()) {
                 // Check if player can vote
                 if (plugin.getElectionManager().hasVoted(player.getUniqueId().toString())) {
                     player.sendMessage(colorize("&cJiž jste hlasovali v těchto volbách!"));
@@ -217,7 +218,14 @@ public class NPCListener implements Listener {
                 
                 // Get candidate ID by finding the candidate in the list
                 int candidateId = findCandidateIdByName(candidateName);
-                if (candidateId > 0) {
+                
+                if (candidateId >= 0) {
+                    // Check if voting is currently allowed
+                    if (!plugin.getElectionManager().canVote()) {
+                        player.sendMessage(colorize("&cHlasování není momentálně aktivní! Volby možná nejsou ve fázi hlasování."));
+                        return;
+                    }
+                    
                     boolean voteSuccess = plugin.getElectionManager().castVote(player.getUniqueId().toString(), candidateId);
                     if (voteSuccess) {
                         player.sendMessage(colorize("&aVáš hlas pro " + candidateName + " byl zaznamenán!"));
@@ -229,11 +237,13 @@ public class NPCListener implements Listener {
                             plugin.getGuiManager().openVotingGui(player, regionId, 0);
                         }
                     } else {
-                        player.sendMessage(colorize("&cChyba při hlasování!"));
+                        player.sendMessage(colorize("&cChyba při hlasování! Zkuste to znovu."));
                     }
                 } else {
                     player.sendMessage(colorize("&cKandidát nebyl nalezen!"));
                 }
+            } else {
+                player.sendMessage(colorize("&cChyba při zpracování jména kandidáta!"));
             }
         }
     }
@@ -247,11 +257,15 @@ public class NPCListener implements Listener {
     
     private int findCandidateIdByName(String candidateName) {
         List<cz.domca.elections.elections.Candidate> candidates = plugin.getElectionManager().getCandidates();
+        
         for (cz.domca.elections.elections.Candidate candidate : candidates) {
             if (candidate.getPlayerName().equals(candidateName)) {
                 return candidate.getId();
             }
         }
+        
+        // Log only when candidate is not found to help with debugging
+        plugin.getLogger().warning("Candidate not found: '" + candidateName + "' among " + candidates.size() + " candidates");
         return -1; // Candidate not found
     }
     
@@ -272,7 +286,7 @@ public class NPCListener implements Listener {
     
     private String extractPlayerNameFromDisplayName(String displayName) {
         // Extract player name from display name like "§eKandidát PlayerName" or "§eKandidát PlayerName §a(Hlasovali jste)"
-        String cleanName = displayName.replaceAll("§[0-9a-fk-or]", "").trim();
+        String cleanName = displayName.replaceAll("§[0-9a-fk-orA-FK-OR]", "").trim();
         
         // Remove "Kandidát " prefix
         if (cleanName.startsWith("Kandidát ")) {
