@@ -100,19 +100,21 @@ voting_gui:
   items:
     candidate:
       material: PLAYER_HEAD
-      name: "&e%player%"
+      name: "&eKandidát %player%"
       lore:
         - "&7Role: &f%role%"
         - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
         - ""
         - "&aKlikněte pro hlasování"
     
     voted_candidate:
       material: PLAYER_HEAD
-      name: "&e%player% &a(Hlasovali jste)"
+      name: "&eKandidát %player% &a(Hlasovali jste)"
       lore:
         - "&7Role: &f%role%"
         - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
         - ""
         - "&aJiž jste hlasovali"
     
@@ -143,19 +145,21 @@ results_gui:
   size: 54
   items:
     winner:
-      material: GOLD_BLOCK
-      name: "&6&l%player%"
+      material: PLAYER_HEAD
+      name: "&6&l🏆 Vítěz: %player%"
       lore:
         - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
         - "&7Hlasů: &f%votes% (%percentage%%)"
         - ""
         - "&6Vítěz voleb!"
     
     candidate_result:
-      material: IRON_BLOCK
-      name: "&7%player%"
+      material: PLAYER_HEAD
+      name: "&e%player%"
       lore:
         - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
         - "&7Hlasů: &f%votes% (%percentage%%)"
 
 # Messages
