@@ -81,22 +81,14 @@ public class NPCListener implements Listener {
             String displayName = meta.getDisplayName();
             
             // Handle different GUI clicks
-            plugin.getLogger().info("Debug: GUI click detected - Title: '" + title + "', DisplayName: '" + displayName + "'");
-            
             if (title.contains("Volby -")) {
-                plugin.getLogger().info("Debug: Handling main menu click");
                 handleMainMenuClick(player, displayName, title);
             } else if (title.contains("Registrace")) {
-                plugin.getLogger().info("Debug: Handling registration click");
                 handleRegistrationClick(player, displayName, clickedItem);
             } else if (title.contains("Hlasování")) {
-                plugin.getLogger().info("Debug: Handling voting click");
                 handleVotingClick(player, displayName, clickedItem, event.getSlot());
             } else if (title.contains("Výsledky")) {
-                plugin.getLogger().info("Debug: Handling results click");
                 handleResultsClick(player, displayName);
-            } else {
-                plugin.getLogger().info("Debug: Unrecognized GUI title: '" + title + "'");
             }
         }
     }
@@ -194,7 +186,6 @@ public class NPCListener implements Listener {
     }
     
     private void handleVotingClick(Player player, String displayName, ItemStack item, int slot) {
-        plugin.getLogger().info("Debug: handleVotingClick called - Player: " + player.getName() + ", DisplayName: '" + displayName + "', Slot: " + slot);
         if (displayName.contains("Zavřít")) {
             player.closeInventory();
             return;
@@ -214,19 +205,12 @@ public class NPCListener implements Listener {
         }
         
         // Check if it's a candidate item (player head) and not already voted
-        plugin.getLogger().info("Debug: Item type: " + item.getType().name() + ", Display name contains 'Hlasovali jste': " + displayName.contains("Hlasovali jste") + ", Display name contains 'není aktivní': " + displayName.contains("není aktivní"));
-        
         if (item.getType() == Material.PLAYER_HEAD && !displayName.contains("Hlasovali jste") && !displayName.contains("není aktivní")) {
             // Extract candidate name and cast vote
             String candidateName = extractPlayerNameFromDisplayName(displayName);
-            plugin.getLogger().info("Debug: Voting click - DisplayName: '" + displayName + "', Extracted name: '" + candidateName + "'");
             
             if (candidateName != null && !candidateName.isEmpty()) {
                 // Check if player can vote
-                plugin.getLogger().info("Debug: Election active: " + plugin.getElectionManager().isElectionActive() + 
-                                      ", Can vote: " + plugin.getElectionManager().canVote() + 
-                                      ", Player has voted: " + plugin.getElectionManager().hasVoted(player.getUniqueId().toString()));
-                
                 if (plugin.getElectionManager().hasVoted(player.getUniqueId().toString())) {
                     player.sendMessage(colorize("&cJiž jste hlasovali v těchto volbách!"));
                     return;
@@ -234,7 +218,6 @@ public class NPCListener implements Listener {
                 
                 // Get candidate ID by finding the candidate in the list
                 int candidateId = findCandidateIdByName(candidateName);
-                plugin.getLogger().info("Debug: Found candidate ID: " + candidateId + " for name: '" + candidateName + "'");
                 
                 if (candidateId >= 0) {
                     // Check if voting is currently allowed
@@ -260,7 +243,6 @@ public class NPCListener implements Listener {
                     player.sendMessage(colorize("&cKandidát nebyl nalezen!"));
                 }
             } else {
-                plugin.getLogger().warning("Debug: Failed to extract candidate name from display name: '" + displayName + "'");
                 player.sendMessage(colorize("&cChyba při zpracování jména kandidáta!"));
             }
         }
@@ -275,15 +257,15 @@ public class NPCListener implements Listener {
     
     private int findCandidateIdByName(String candidateName) {
         List<cz.domca.elections.elections.Candidate> candidates = plugin.getElectionManager().getCandidates();
-        plugin.getLogger().info("Debug: Looking for candidate '" + candidateName + "' among " + candidates.size() + " candidates");
         
         for (cz.domca.elections.elections.Candidate candidate : candidates) {
             if (candidate.getPlayerName().equals(candidateName)) {
-                plugin.getLogger().info("Debug: Found matching candidate: '" + candidate.getPlayerName() + "' with ID: " + candidate.getId());
                 return candidate.getId();
             }
         }
-        plugin.getLogger().info("Debug: No matching candidate found for name: '" + candidateName + "'");
+        
+        // Log only when candidate is not found to help with debugging
+        plugin.getLogger().warning("Candidate not found: '" + candidateName + "' among " + candidates.size() + " candidates");
         return -1; // Candidate not found
     }
     
