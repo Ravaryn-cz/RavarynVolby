@@ -224,28 +224,53 @@ public class GuiManager {
                 itemConfig = config.getConfigurationSection("candidate");
             }
             
-            if (itemConfig != null) {
-                String name = itemConfig.getString("name", "%player%")
+            // Always set a name, even if config is missing
+            String name;
+            if (itemConfig != null && itemConfig.getString("name") != null) {
+                name = itemConfig.getString("name", "Kandidát %player%")
                     .replace("%player%", candidate.getPlayerName());
-                
-                // If voting is disabled but we don't have a special template, modify the name
-                if (!canVote && !hasVoted && itemConfig == config.getConfigurationSection("candidate")) {
-                    name = name + " &8(Hlasování není aktivní)";
-                }
-                
-                meta.setDisplayName(colorize(name));
-                
-                List<String> lore = new ArrayList<>();
+            } else {
+                // Fallback name format
+                name = "Kandidát " + candidate.getPlayerName();
+            }
+            
+            // If voting is disabled but we don't have a special template, modify the name
+            if (!canVote && !hasVoted && (itemConfig == null || itemConfig == config.getConfigurationSection("candidate"))) {
+                name = name + " &8(Hlasování není aktivní)";
+            } else if (hasVoted) {
+                name = name + " &a(Hlasovali jste)";
+            }
+            
+            meta.setDisplayName(colorize(name));
+            
+            // Always create lore with candidate information
+            List<String> lore = new ArrayList<>();
+            
+            // If we have config lore, use it and replace placeholders
+            if (itemConfig != null && itemConfig.getStringList("lore") != null && !itemConfig.getStringList("lore").isEmpty()) {
                 for (String line : itemConfig.getStringList("lore")) {
                     lore.add(colorize(line
                         .replace("%player%", candidate.getPlayerName())
-                        .replace("%role%", candidate.getRole())
+                        .replace("%role%", candidate.getRole() != null ? candidate.getRole() : "Neuvedeno")
                         .replace("%slogan%", candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")
                         .replace("%votes%", String.valueOf(candidate.getVotes()))));
                 }
-                meta.setLore(lore);
+            } else {
+                // Fallback lore if config is missing or empty
+                lore.add(colorize("&7Role: &f" + (candidate.getRole() != null ? candidate.getRole() : "Neuvedeno")));
+                lore.add(colorize("&7Slogan: &f" + (candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")));
+                lore.add(colorize("&7Hlasy: &f" + candidate.getVotes()));
+                lore.add("");
+                if (canVote && !hasVoted) {
+                    lore.add(colorize("&aKlikněte pro hlasování"));
+                } else if (hasVoted) {
+                    lore.add(colorize("&aJiž jste hlasovali"));
+                } else {
+                    lore.add(colorize("&8Hlasování momentálně není aktivní"));
+                }
             }
             
+            meta.setLore(lore);
             item.setItemMeta(meta);
         }
         
@@ -264,28 +289,51 @@ public class GuiManager {
                 config.getConfigurationSection("winner") : 
                 config.getConfigurationSection("candidate_result");
             
-            if (itemConfig != null) {
-                String name = itemConfig.getString("name", "%player%")
+            // Calculate percentage
+            List<Candidate> allCandidates = plugin.getElectionManager().getCandidates();
+            int totalVotes = allCandidates.stream().mapToInt(Candidate::getVotes).sum();
+            double percentage = totalVotes > 0 ? (double) candidate.getVotes() / totalVotes * 100 : 0;
+            
+            // Always set a name, even if config is missing
+            String name;
+            if (itemConfig != null && itemConfig.getString("name") != null) {
+                name = itemConfig.getString("name", "%player%")
                     .replace("%player%", candidate.getPlayerName());
-                meta.setDisplayName(colorize(name));
-                
-                // Calculate percentage
-                List<Candidate> allCandidates = plugin.getElectionManager().getCandidates();
-                int totalVotes = allCandidates.stream().mapToInt(Candidate::getVotes).sum();
-                double percentage = totalVotes > 0 ? (double) candidate.getVotes() / totalVotes * 100 : 0;
-                
-                List<String> lore = new ArrayList<>();
+            } else {
+                // Fallback name format
+                if (isWinner) {
+                    name = "&6&l🏆 Vítěz: " + candidate.getPlayerName();
+                } else {
+                    name = "&e" + candidate.getPlayerName();
+                }
+            }
+            meta.setDisplayName(colorize(name));
+            
+            // Always create lore with candidate information
+            List<String> lore = new ArrayList<>();
+            
+            // If we have config lore, use it and replace placeholders
+            if (itemConfig != null && itemConfig.getStringList("lore") != null && !itemConfig.getStringList("lore").isEmpty()) {
                 for (String line : itemConfig.getStringList("lore")) {
                     lore.add(colorize(line
                         .replace("%player%", candidate.getPlayerName())
-                        .replace("%role%", candidate.getRole())
+                        .replace("%role%", candidate.getRole() != null ? candidate.getRole() : "Neuvedeno")
                         .replace("%slogan%", candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")
                         .replace("%votes%", String.valueOf(candidate.getVotes()))
                         .replace("%percentage%", String.format("%.1f", percentage))));
                 }
-                meta.setLore(lore);
+            } else {
+                // Fallback lore if config is missing or empty
+                lore.add(colorize("&7Role: &f" + (candidate.getRole() != null ? candidate.getRole() : "Neuvedeno")));
+                lore.add(colorize("&7Slogan: &f" + (candidate.getSlogan() != null ? candidate.getSlogan() : "Žádný slogan")));
+                lore.add(colorize("&7Hlasů: &f" + candidate.getVotes() + " (" + String.format("%.1f", percentage) + "%%)"));
+                if (isWinner) {
+                    lore.add("");
+                    lore.add(colorize("&6Vítěz voleb!"));
+                }
             }
             
+            meta.setLore(lore);
             item.setItemMeta(meta);
         }
         
