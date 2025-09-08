@@ -211,6 +211,12 @@ public class NPCListener implements Listener {
             String candidateName = extractPlayerNameFromDisplayName(displayName);
             
             if (candidateName != null && !candidateName.isEmpty()) {
+                // Check if voting is currently allowed first
+                if (!plugin.getElectionManager().canVote()) {
+                    player.sendMessage(colorize("&cHlasování není momentálně aktivní! Volby možná nejsou ve fázi hlasování."));
+                    return;
+                }
+                
                 // Check if player can vote
                 if (plugin.getElectionManager().hasVoted(player.getUniqueId().toString())) {
                     player.sendMessage(colorize("&cJiž jste hlasovali v těchto volbách!"));
@@ -221,12 +227,6 @@ public class NPCListener implements Listener {
                 int candidateId = findCandidateIdByName(candidateName);
                 
                 if (candidateId >= 0) {
-                    // Check if voting is currently allowed
-                    if (!plugin.getElectionManager().canVote()) {
-                        player.sendMessage(colorize("&cHlasování není momentálně aktivní! Volby možná nejsou ve fázi hlasování."));
-                        return;
-                    }
-                    
                     boolean voteSuccess = plugin.getElectionManager().castVote(player.getUniqueId().toString(), candidateId);
                     if (voteSuccess) {
                         player.sendMessage(colorize("&aVáš hlas pro " + candidateName + " byl zaznamenán!"));
@@ -242,9 +242,18 @@ public class NPCListener implements Listener {
                     }
                 } else {
                     player.sendMessage(colorize("&cKandidát nebyl nalezen!"));
+                    plugin.getLogger().warning("Failed to find candidate '" + candidateName + "' for voting by player " + player.getName());
                 }
             } else {
                 player.sendMessage(colorize("&cChyba při zpracování jména kandidáta!"));
+                plugin.getLogger().warning("Failed to extract candidate name from display name: '" + displayName + "'");
+            }
+        } else if (item.getType() == Material.PLAYER_HEAD) {
+            // It's a candidate but voting is disabled or already voted
+            if (displayName.contains("není aktivní")) {
+                player.sendMessage(colorize("&cHlasování není momentálně aktivní!"));
+            } else if (displayName.contains("Hlasovali jste")) {
+                player.sendMessage(colorize("&cJiž jste hlasovali v těchto volbách!"));
             }
         }
     }
@@ -294,10 +303,23 @@ public class NPCListener implements Listener {
             cleanName = cleanName.substring("Kandidát ".length());
         }
         
-        // Remove " (Hlasovali jste)" suffix if present
-        if (cleanName.contains(" (Hlasovali jste)")) {
-            cleanName = cleanName.substring(0, cleanName.indexOf(" (Hlasovali jste)"));
+        // Remove various suffixes that might be present
+        String[] suffixesToRemove = {
+            " (Hlasovali jste)",
+            " (Hlasování není aktivní)",
+            " &8(Hlasování není aktivní)",
+            " &a(Hlasovali jste)"
+        };
+        
+        for (String suffix : suffixesToRemove) {
+            if (cleanName.contains(suffix)) {
+                cleanName = cleanName.substring(0, cleanName.indexOf(suffix));
+                break;
+            }
         }
+        
+        // Additional cleanup - remove any remaining color codes that might have been missed
+        cleanName = cleanName.replaceAll("&[0-9a-fk-orA-FK-OR]", "").trim();
         
         return cleanName.trim();
     }
