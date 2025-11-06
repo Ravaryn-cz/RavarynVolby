@@ -1,0 +1,191 @@
+# GUI Configuration for Weekly Elections
+
+# Main menu GUI
+main_menu:
+  title: "&aVolby - %region%"
+  size: 27
+  items:
+    register:
+      slot: 10
+      material: PAPER
+      name: "&e&lPřihlásit se do voleb"
+      lore:
+        - "&7Klikněte pro přihlášení"
+        - "&7do voleb jako kandidát"
+    
+    candidates:
+      slot: 12
+      material: PLAYER_HEAD
+      name: "&b&lZobrazit kandidáty"
+      lore:
+        - "&7Prohlédněte si všechny"
+        - "&7registrované kandidáty"
+    
+    vote:
+      slot: 14
+      material: EMERALD
+      name: "&a&lHlasovat"
+      lore:
+        - "&7Hlasujte pro svého"
+        - "&7oblíbeného kandidáta"
+    
+    results:
+      slot: 16
+      material: GOLD_INGOT
+      name: "&6&lVýsledky"
+      lore:
+        - "&7Zobrazte výsledky"
+        - "&7posledních voleb"
+    
+    close:
+      slot: 22
+      material: BARRIER
+      name: "&c&lZavřít"
+      lore:
+        - "&7Zavřít menu"
+
+# Registration form GUI
+registration_form:
+  title: "&eRegistrace"
+  size: 45
+  items:
+    zalanik:
+      slot: 20
+      material: IRON_BARS
+      name: "&c&lZalařník"
+      lore:
+        - "&7Správa trestů a žalářů"
+        - "&7v daném regionu"
+        - ""
+        - "&eKlikněte pro výběr"
+    
+    rychtář:
+      slot: 22
+      material: GOLDEN_SWORD
+      name: "&6&lRychtář"
+      lore:
+        - "&7Lokální zákony"
+        - "&7a regionální bonusy"
+        - ""
+        - "&eKlikněte pro výběr"
+    
+    spravce_obchodu:
+      slot: 24
+      material: EMERALD
+      name: "&a&lSprávce obchodu"
+      lore:
+        - "&7Dynamická úprava cen"
+        - "&7v regionálním obchodě"
+        - ""
+        - "&eKlikněte pro výběr"
+    
+    confirm:
+      slot: 38
+      material: GREEN_WOOL
+      name: "&a&lPotvrdit"
+      lore:
+        - "&7Potvrdit registraci"
+    
+    cancel:
+      slot: 42
+      material: RED_WOOL
+      name: "&c&lZrušit"
+      lore:
+        - "&7Zrušit registraci"
+
+# Voting GUI
+voting_gui:
+  title: "&6Hlasování - %region%"
+  size: 54
+  items:
+    candidate:
+      material: PLAYER_HEAD
+      name: "&eKandidát %player%"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
+        - ""
+        - "&aKlikněte pro hlasování"
+    
+    voted_candidate:
+      material: PLAYER_HEAD
+      name: "&eKandidát %player% &a(Hlasovali jste)"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
+        - ""
+        - "&aJiž jste hlasovali"
+    
+    voting_disabled:
+      material: PLAYER_HEAD
+      name: "&eKandidát %player% &8(Hlasování není aktivní)"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasy: &f%votes%"
+        - ""
+        - "&8Hlasování momentálně není aktivní"
+    
+    previous_page:
+      slot: 45
+      material: ARROW
+      name: "&7← Předchozí stránka"
+      lore:
+        - "&7Klikněte pro návrat"
+    
+    next_page:
+      slot: 53
+      material: ARROW
+      name: "&7Další stránka →"
+      lore:
+        - "&7Klikněte pro pokračování"
+    
+    close:
+      slot: 49
+      material: BARRIER
+      name: "&c&lZavřít"
+      lore:
+        - "&7Zavřít hlasování"
+
+# Results GUI
+results_gui:
+  title: "&6Výsledky - %region%"
+  size: 54
+  items:
+    winner:
+      material: PLAYER_HEAD
+      name: "&6&l🏆 Vítěz: %player%"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasů: &f%votes% (%percentage%%)"
+        - ""
+        - "&6Vítěz voleb!"
+    
+    candidate_result:
+      material: PLAYER_HEAD
+      name: "&e%player%"
+      lore:
+        - "&7Role: &f%role%"
+        - "&7Slogan: &f%slogan%"
+        - "&7Hlasů: &f%votes% (%percentage%%)"
+
+# Messages
+messages:
+  election_not_active: "&cVolby nejsou momentálně aktivní!"
+  already_registered: "&cJiž jste registrován jako kandidát!"
+  registration_successful: "&aÚspěšně jste se zaregistrovali jako kandidát!"
+  already_voted: "&cJiž jste hlasovali v těchto volbách!"
+  vote_successful: "&aVáš hlas byl úspěšně zaznamenán!"
+  no_permission: "&cNemáte oprávnění k této akci!"
+  player_not_found: "&cHráč nebyl nalezen!"
+  invalid_region: "&cNeplatný region!"
+  requirements_not_met: "&cNesplňujete požadavky pro kandidaturu!"
+  slogan_too_long: "&cSlogan je příliš dlouhý! Maximum je 100 znaků."
+  
+  # NPC messages
+  npc_created: "&aNPC pro volby byl vytvořen v regionu %region%!"
+  npc_already_exists: "&cNPC pro tento region již existuje!"
+  npcs_fixed: "&aVšechny chybějící NPC byly obnoveny!"

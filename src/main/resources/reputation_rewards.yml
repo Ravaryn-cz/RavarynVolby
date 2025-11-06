@@ -1,0 +1,38 @@
+# Reputation system configuration
+
+# Reputation rewards for different actions
+rewards:
+  election_winner: 10
+  election_candidate: 2
+  voter: 1
+
+# Prefix levels based on reputation
+prefix_levels:
+  0:
+    prefix: ""
+    name: "Občan"
+  50:
+    prefix: "&7[Aktivní občan] "
+    name: "Aktivní občan"
+  100:
+    prefix: "&a[Uznávaný občan] "
+    name: "Uznávaný občan"
+  200:
+    prefix: "&b[Vážený občan] "
+    name: "Vážený občan"
+  300:
+    prefix: "&d[Ctihodný občan] "
+    name: "Ctihodný občan"
+  500:
+    prefix: "&6[Legendární občan] "
+    name: "Legendární občan"
+  1000:
+    prefix: "&c[Věčný občan] "
+    name: "Věčný občan"
+
+# Messages for reputation changes
+messages:
+  reputation_gained: "&a+%amount% reputace! (%reason%)"
+  reputation_lost: "&c-%amount% reputace! (%reason%)"
+  prefix_upgraded: "&6Gratulujeme! Získali jste nový titul: %prefix%"
+  reputation_check: "&7Vaše reputace: &e%reputation%"

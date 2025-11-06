@@ -1,0 +1,33 @@
+name: WeeklyElections
+version: '${project.version}'
+main: cz.domca.elections.WeeklyElectionsPlugin
+api-version: '1.20'
+description: Weekly Regional Elections Plugin
+author: DomCa
+website: https://github.com/domca
+
+depend:
+  - LuckPerms
+  - Citizens
+
+softdepend:
+  - HolographicDisplays
+  - Vault
+
+commands:
+  volby:
+    description: Main elections command
+    usage: /volby <subcommand>
+    permission: elections.use
+    aliases: [elections]
+
+permissions:
+  elections.use:
+    description: Basic permission to use elections
+    default: true
+  elections.mod:
+    description: Moderator permissions for elections
+    default: "op"
+  elections.admin:
+    description: Administrator permissions for elections
+    default: "op"

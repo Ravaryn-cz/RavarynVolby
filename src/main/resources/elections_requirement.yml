@@ -1,0 +1,18 @@
+# Election participation requirements
+
+requirements:
+  # Minimum playtime in hours
+  min_playtime: 20
+  
+  # Minimum quest points required
+  min_quest_points: 1
+  
+  # Minimum money required
+  min_money: 1000
+
+# Messages for requirement failures
+messages:
+  insufficient_playtime: "&cNemáte dostatek herního času! Potřebujete alespoň %hours% hodin."
+  insufficient_quest_points: "&cNemáte dostatek quest bodů! Potřebujete alespoň %points% bodů."
+  insufficient_money: "&cNemáte dostatek peněz! Potřebujete alespoň %money% mincí."
+  requirements_met: "&aVšechny požadavky jsou splněny!"

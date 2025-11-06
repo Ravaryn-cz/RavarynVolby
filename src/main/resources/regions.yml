@@ -1,0 +1,83 @@
+# Region definitions for Weekly Elections
+
+regions:
+  vojtechov:
+    name: "Vojtěchov"
+    display_name: "&eVojtěchov"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: -100
+      min_y: 0
+      min_z: -100
+      max_x: 100
+      max_y: 256
+      max_z: 100
+    
+  tresin:
+    name: "Třešín"
+    display_name: "&eTřešín"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: 200
+      min_y: 0
+      min_z: -100
+      max_x: 400
+      max_y: 256
+      max_z: 100
+    
+  pribyslav:
+    name: "Přibyslav"
+    display_name: "&ePřibyslav"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: -100
+      min_y: 0
+      min_z: 200
+      max_x: 100
+      max_y: 256
+      max_z: 400
+    
+  drahosov:
+    name: "Drahošov"
+    display_name: "&eDrahošov"
+    # Example boundary - replace with actual coordinates
+    boundary:
+      world: "world"
+      min_x: 200
+      min_y: 0
+      min_z: 200
+      max_x: 400
+      max_y: 256
+      max_z: 400
+
+# Role definitions
+roles:
+  zalanik:
+    name: "Zalařník"
+    display_name: "&c&lZalařník"
+    description: "Správa trestů a žalářů v regionu"
+    luckperms_group: "elections_zalanik"
+    reputation_reward: 10
+    
+  rychtář:
+    name: "Rychtář"
+    display_name: "&6&lRychtář"
+    description: "Lokální zákony a regionální bonusy"
+    luckperms_group: "elections_rychtář"
+    reputation_reward: 10
+    
+  spravce_obchodu:
+    name: "Správce obchodu"
+    display_name: "&a&lSprávce obchodu"
+    description: "Dynamická úprava cen v regionálním obchodě"
+    luckperms_group: "elections_spravce_obchodu"
+    reputation_reward: 10
+
+# Reputation rewards
+reputation:
+  winner: 10
+  candidate: 2
+  voter: 1

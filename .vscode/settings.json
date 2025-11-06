@@ -1,0 +1,6 @@
+{
+    "yaml.schemas": {
+        "https://www.schemastore.org/paper-plugin.json": "file:///c%3A/Users/Dominik/eclipse-workspace/NewPlugin/src/main/resources/plugin.yml",
+        "https://www.schemastore.org/bukkit-plugin.json": "file:///e%3A/Sta%C5%BEen%C3%A9%20soubory/RavarynVolby-1/src/main/resources/plugin.yml"
+    }
+}
