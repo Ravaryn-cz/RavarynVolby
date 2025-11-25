@@ -135,6 +135,18 @@ public class NPCListener implements Listener {
         if (regionId == null) return;
         
         if (displayName.contains("Přihlásit se")) {
+            // Check if we are in registration phase
+            if (plugin.getElectionManager().isElectionActive()) {
+                cz.domca.elections.elections.ElectionPhase phase = plugin.getElectionManager().getCurrentElection().getPhase();
+                if (phase != cz.domca.elections.elections.ElectionPhase.REGISTRATION) {
+                    player.sendMessage(colorize("&cRegistrace kandidátů již byla ukončena!"));
+                    return;
+                }
+            } else {
+                player.sendMessage(colorize("&cNejsou aktivní žádné volby!"));
+                return;
+            }
+
             // The requirements check is now handled inside the registration manager
             plugin.getGuiManager().openRegistrationForm(player, regionId);
         }
@@ -144,8 +156,8 @@ public class NPCListener implements Listener {
                 cz.domca.elections.elections.ElectionPhase phase = plugin.getElectionManager().getCurrentElection().getPhase();
                 
                 if (phase == cz.domca.elections.elections.ElectionPhase.VOTING) {
-                    // During voting phase, show candidates in read-only mode (show heads and lore, but can't vote)
-                    plugin.getGuiManager().openViewCandidatesGui(player, regionId);
+                    // During voting phase, redirect to voting menu
+                    player.sendMessage(colorize("&cPro zobrazení kandidátů použijte tlačítko Hlasovat!"));
                 } else if (phase == cz.domca.elections.elections.ElectionPhase.REGISTRATION) {
                     player.sendMessage(colorize("&cKandidáti ještě nejsou k dispozici! Počkejte na hlasovací fázi."));
                 } else {

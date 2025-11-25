@@ -124,11 +124,21 @@
                                     <artifact>org.xerial:sqlite-jdbc</artifact>
                                     <includes>
                                         <include>**/*.class</include>
-                                        <include>**/*.dll</include>
-                                        <include>**/*.so</include>
-                                        <include>**/*.dylib</include>
+                                        <!-- Bundle SQLite natives for Linux x86_64 and ARM variants -->
+                                        <include>org/sqlite/native/Linux/x86_64/**</include>
+                                        <include>org/sqlite/native/Linux/aarch64/**</include>
+                                        <include>org/sqlite/native/Linux/arm/**</include>
+                                        <include>org/sqlite/native/Linux/armv6/**</include>
+                                        <include>org/sqlite/native/Linux/armv7/**</include>
                                         <include>META-INF/**</include>
                                     </includes>
+                                    <excludes>
+                                        <!-- Exclude non-Linux native libraries to keep the jar slim -->
+                                        <exclude>org/sqlite/native/Windows/**</exclude>
+                                        <exclude>org/sqlite/native/Mac/**</exclude>
+                                        <exclude>org/sqlite/native/Linux/ppc64/**</exclude>
+                                        <exclude>org/sqlite/native/FreeBSD/**</exclude>
+                                    </excludes>
                                 </filter>
                             </filters>
                             <relocations>

@@ -1,5 +1,8 @@
 # Reputation system configuration
 
+settings:
+  show_prefixes: false
+
 # Reputation rewards for different actions
 rewards:
   election_winner: 10

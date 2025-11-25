@@ -5,16 +5,28 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
 import java.util.logging.Level;
 
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import cz.domca.elections.WeeklyElectionsPlugin;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 
 public class ElectionManager {
     
@@ -237,6 +249,8 @@ public class ElectionManager {
                 try {
                     startNewElection(nextRegion);
                     plugin.getLogger().info("Started new election in region: " + nextRegion);
+                    broadcastMessage("&6Mandát byl ukončen! Začínají nové volby v regionu: " + 
+                        plugin.getRegionManager().getRegion(nextRegion).getDisplayName());
                 } catch (Exception e) {
                     plugin.getLogger().severe("Failed to start new election in region " + nextRegion + ": " + e.getMessage());
                     e.printStackTrace();
@@ -248,9 +262,118 @@ public class ElectionManager {
             // Progress to next phase
             updateElectionPhase(nextPhase);
             plugin.getLogger().info("Progressed election to phase: " + nextPhase.getDisplayName());
+            handlePhaseTransition(nextPhase);
         }
     }
     
+    private void handlePhaseTransition(ElectionPhase newPhase) {
+        if (newPhase == ElectionPhase.VOTING) {
+            broadcastMessage("&6Registrace kandidátů byla ukončena! Začíná hlasovací období.");
+        } else if (newPhase == ElectionPhase.RESULTS) {
+            // Broadcast concise summary that voting ended
+            broadcastMessage("&6&lHlasování bylo ukončeno! Výsledky jsou k dispozici.");
+            
+            // Give reputation rewards
+            plugin.getReputationManager().giveElectionRewards(currentElection.getRegionId());
+            
+            // Assign roles to winners
+            plugin.getRoleAssignmentManager().assignElectionRoles(
+                currentElection.getRegionId(), 
+                getCandidates()
+            );
+            
+            // Announce winners with fireworks
+            announceWinners(currentElection);
+        }
+    }
+
+    private void broadcastMessage(String message) {
+        String colorized = message.replace("&", "§");
+        plugin.getServer().broadcastMessage(colorized);
+    }
+    
+    private void announceWinners(Election election) {
+        List<Candidate> candidates = getCandidates();
+        
+        // Group candidates by role and find winners (highest votes per role)
+        Map<String, Candidate> winnersByRole = new HashMap<>();
+        
+        for (Candidate candidate : candidates) {
+            String role = candidate.getRole();
+            Candidate currentWinner = winnersByRole.get(role);
+            
+            if (currentWinner == null || candidate.getVotes() > currentWinner.getVotes()) {
+                winnersByRole.put(role, candidate);
+            }
+        }
+        
+        // Broadcast winners to all players with fewer chat lines
+        broadcastMessage("&6&l🏆 VÍTĚZOVÉ VOLEB 🏆");
+        broadcastMessage("&eRegion: &f" + plugin.getRegionManager().getRegion(election.getRegionId()).getDisplayName());
+        
+        for (Map.Entry<String, Candidate> entry : winnersByRole.entrySet()) {
+            String role = entry.getKey();
+            Candidate winner = entry.getValue();
+            broadcastMessage("&6" + role + ": &f" + winner.getPlayerName() + " &7(" + winner.getVotes() + " hlasů)");
+            
+            // Send title and fireworks to winner if online
+            Player winnerPlayer = plugin.getServer().getPlayer(UUID.fromString(winner.getPlayerUuid()));
+            if (winnerPlayer != null && winnerPlayer.isOnline()) {
+                sendWinnerTitle(winnerPlayer, role);
+                launchFireworks(winnerPlayer.getLocation(), 5);
+            }
+        }
+        
+    }
+    
+    private void sendWinnerTitle(Player player, String role) {
+        // Send title using Adventure API (Paper/Spigot 1.20+)
+        Component mainTitle = Component.text("§6§l✨ VYHRÁLI JSTE! ✨");
+        Component subtitle = Component.text("§eGratulujeme k vítězství v roli §f" + role);
+        
+        Title title = Title.title(
+            mainTitle,
+            subtitle,
+            Title.Times.times(
+                Duration.ofMillis(500),  // fade in
+                Duration.ofMillis(3500), // stay
+                Duration.ofMillis(1000)  // fade out
+            )
+        );
+        
+        player.showTitle(title);
+        player.sendMessage("§6§lGratulujeme! Vyhráli jste roli §f" + role + "§6 ve volbách.");
+    }
+    
+    private void launchFireworks(Location location, int count) {
+        for (int i = 0; i < count; i++) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Firework firework = location.getWorld().spawn(location, Firework.class);
+                    FireworkMeta meta = firework.getFireworkMeta();
+                    
+                    // Random colors
+                    Color[] colors = {Color.RED, Color.YELLOW, Color.ORANGE, Color.LIME, Color.AQUA, Color.FUCHSIA};
+                    Color color1 = colors[new Random().nextInt(colors.length)];
+                    Color color2 = colors[new Random().nextInt(colors.length)];
+                    
+                    FireworkEffect effect = FireworkEffect.builder()
+                        .withColor(color1, color2)
+                        .withFade(Color.WHITE)
+                        .with(FireworkEffect.Type.BALL_LARGE)
+                        .trail(true)
+                        .flicker(true)
+                        .build();
+                    
+                    meta.addEffect(effect);
+                    meta.setPower(1);
+                    firework.setFireworkMeta(meta);
+                }
+            }.runTaskLater(plugin, i * 10L); // Spread fireworks over time
+        }
+    }
+
     private void updateElectionPhase(ElectionPhase phase) {
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             String query = "UPDATE elections SET phase = ? WHERE id = ?";
